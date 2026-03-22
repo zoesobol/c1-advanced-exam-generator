@@ -1,11 +1,21 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+
+import { ProtectedRoute } from "@/features/auth/ProtectedRoute";
+import { DashboardPage } from "@/pages/DashboardPage";
+import { LoginPage } from "@/pages/LoginPage";
+import { RegisterPage } from "@/pages/RegisterPage";
+
 function App() {
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">C1 Exam Generator</h1>
-        <p className="mt-3 text-zinc-400">coming soon ✨</p>
-      </div>
-    </main>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Route>
+    </Routes>
   );
 }
 
