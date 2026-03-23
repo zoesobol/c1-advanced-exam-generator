@@ -53,3 +53,47 @@ class CreateExamApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["selected_parts"], ["P1", "W1"]) # type: ignore
+
+    def test_authenticated_user_can_create_exam_with_p2(self):
+        payload = {
+            "selected_parts": ["P2"],
+            "mode": "quality",
+            "difficulty": "c1_mid",
+            "timer_enabled": True,
+            "uk_spelling": True,
+        }
+
+        response = self.client.post("/api/exams/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Exam.objects.count(), 1)
+
+        exam = Exam.objects.first()
+        self.assertEqual(exam.user, self.user)  # type: ignore
+        self.assertEqual(exam.selected_parts, ["P2"])  # type: ignore
+        self.assertEqual(exam.sections.count(), 1)  # type: ignore
+
+        section = exam.sections.first()  # type: ignore
+        self.assertEqual(section.part_code, "P2")
+        self.assertEqual(section.section_type, "ruoe")
+        self.assertEqual(section.status, "pending")
+
+    def test_authenticated_user_can_create_exam_with_p1_and_p2(self):
+        payload = {
+            "selected_parts": ["P2", "P1"],
+            "mode": "quality",
+            "difficulty": "c1_mid",
+            "timer_enabled": True,
+            "uk_spelling": True,
+        }
+
+        response = self.client.post("/api/exams/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["selected_parts"], ["P1", "P2"])  # type: ignore
+
+        exam = Exam.objects.first()
+        self.assertEqual(exam.sections.count(), 2)  # type: ignore
+
+        part_codes = list(exam.sections.values_list("part_code", flat=True))  # type: ignore
+        self.assertEqual(part_codes, ["P1", "P2"])

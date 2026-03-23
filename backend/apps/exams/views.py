@@ -33,11 +33,11 @@ class ExamListCreateView(APIView):
 
         exam = create_exam_for_user(
             user=request.user,
-            selected_parts=serializer.validated_data["selected_parts"], # type: ignore
-            mode=serializer.validated_data["mode"], # type: ignore
-            difficulty=serializer.validated_data["difficulty"], # type: ignore
-            timer_enabled=serializer.validated_data["timer_enabled"], # type: ignore
-            uk_spelling=serializer.validated_data["uk_spelling"], # type: ignore
+            selected_parts=serializer.validated_data["selected_parts"],  # type: ignore
+            mode=serializer.validated_data["mode"],  # type: ignore
+            difficulty=serializer.validated_data["difficulty"],  # type: ignore
+            timer_enabled=serializer.validated_data["timer_enabled"],  # type: ignore
+            uk_spelling=serializer.validated_data["uk_spelling"],  # type: ignore
         )
 
         response_serializer = ExamDetailSerializer(exam)
@@ -97,8 +97,8 @@ class SectionSubmitView(APIView):
         attempt = submit_objective_section(
             section=section,
             user=request.user,
-            answers=serializer.validated_data["answers"], # type: ignore
-            time_spent_seconds=serializer.validated_data["time_spent_seconds"], # type: ignore
+            answers=serializer.validated_data["answers"],  # type: ignore
+            time_spent_seconds=serializer.validated_data["time_spent_seconds"],  # type: ignore
         )
 
         return Response(
@@ -108,6 +108,36 @@ class SectionSubmitView(APIView):
                 "max_score": attempt.max_score,
                 "results": attempt.results_json,
                 "submitted_at": attempt.submitted_at,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class SectionLatestResultsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, section_id):
+        section = get_object_or_404(
+            ExamSection,
+            id=section_id,
+            exam__user=request.user,
+        )
+
+        latest_attempt = section.attempts.order_by("-submitted_at").first() # type: ignore
+
+        if latest_attempt is None:
+            return Response(
+                {"detail": "No results found for this section yet."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            {
+                "section_id": str(section.id),
+                "score": latest_attempt.score,
+                "max_score": latest_attempt.max_score,
+                "results": latest_attempt.results_json,
+                "submitted_at": latest_attempt.submitted_at,
             },
             status=status.HTTP_200_OK,
         )

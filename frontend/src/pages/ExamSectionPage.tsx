@@ -7,12 +7,27 @@ import { useAuth } from "@/features/auth/AuthContext";
 import { getExam } from "@/features/exams/api/getExam";
 import { getSection, submitSection } from "@/features/exams/api/submitSection";
 import { ExamSectionTabs } from "@/features/exams/components/ExamSectionTabs";
+import { P1InlineRenderer } from "@/features/exams/sections/p1/components/P1InlineRenderer";
+import { P2InlineRenderer } from "@/features/exams/sections/p2/components/P2InlineRenderer";
 import type {
   Exam,
   SectionPayload,
   SubmitSectionResponse,
 } from "@/features/exams/types";
-import { P1InlineRenderer } from "@/features/p1/components/P1InlineRenderer";
+
+function getTotalQuestions(section: SectionPayload | null): number {
+  if (!section) return 0;
+
+  if (section.part_code === "P1") {
+    return section.content.questions.length;
+  }
+
+  if (section.part_code === "P2") {
+    return section.content.total_gaps;
+  }
+
+  return 0;
+}
 
 export function ExamSectionPage() {
   const { examId, partCode } = useParams<{
@@ -53,13 +68,14 @@ export function ExamSectionPage() {
     void run();
   }, [examId, partCode, accessToken]);
 
-  const totalQuestions = section?.content.questions.length ?? 0;
+  const totalQuestions = getTotalQuestions(section);
+
   const answeredQuestions = useMemo(
-    () => Object.keys(answers).length,
+    () => Object.values(answers).filter((value) => value.trim() !== "").length,
     [answers],
   );
 
-  const handleSelect = (questionId: string, answer: string) => {
+  const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers((current) => ({
       ...current,
       [questionId]: answer,
@@ -88,6 +104,7 @@ export function ExamSectionPage() {
         state: {
           response,
           sectionTitle: section.content.title,
+          sectionId: section.id,
         },
       });
     } catch {
@@ -125,11 +142,24 @@ export function ExamSectionPage() {
         <ExamSectionTabs examId={exam.id} sections={exam.sections} />
       </section>
 
-      <P1InlineRenderer
-        content={section.content}
-        answers={answers}
-        onSelect={handleSelect}
-      />
+      {section.part_code === "P1" ? (
+        <P1InlineRenderer
+          content={section.content}
+          answers={answers}
+          onSelect={handleAnswerChange}
+        />
+      ) : section.part_code === "P2" ? (
+        <P2InlineRenderer
+          content={section.content}
+          answers={answers}
+          onChange={handleAnswerChange}
+        />
+      ) : (
+        <ErrorState
+          title="Unsupported section"
+          message="This section type is not available yet."
+        />
+      )}
 
       <div className="sticky bottom-4 z-20 rounded-3xl border border-border bg-card p-4 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

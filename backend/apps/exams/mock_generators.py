@@ -265,3 +265,167 @@ def generate_mock_p1() -> dict:
             "notes": "Full 8-gap mock generator using explicit inline segments for the frontend renderer.",
         },
     }
+
+
+def generate_mock_p2() -> dict:
+    return {
+        "content": {
+            "title": "Reading and Use of English Part 2",
+            "instructions": (
+                "For questions 9–16, read the text below and think of the word "
+                "which best fits each gap. Use only one word for each gap."
+            ),
+            "segments": [
+                {
+                    "type": "text",
+                    "text": (
+                        "WHY WE DELAY IMPORTANT TASKS\n\n"
+                        "Most people have, at some point, put off doing something they knew "
+                        "was important. Although they may have had every intention of starting "
+                        "early, they somehow end up leaving it until the last minute. This is "
+                        "often described as procrastination, a habit that many people struggle "
+                        "to free themselves "
+                    ),
+                },
+                {"type": "gap", "question_id": "q1", "number": 9, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        ".\n\n"
+                        "One common explanation is that people do not delay tasks simply because "
+                        "they are lazy. In many cases, the real problem lies "
+                    ),
+                },
+                {"type": "gap", "question_id": "q2", "number": 10, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        " the way they feel about the task. If an activity seems boring, "
+                        "confusing or stressful, people may avoid it in order to improve their "
+                        "mood for a short time. The trouble is that this immediate sense of "
+                        "relief is usually followed "
+                    ),
+                },
+                {"type": "gap", "question_id": "q3", "number": 11, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        " guilt, which can make the task seem even more unpleasant when they "
+                        "eventually return to it.\n\n"
+                        "Some researchers argue that procrastination has less to do with poor "
+                        "time management than people used to think. Instead, it may be more "
+                        "closely connected "
+                    ),
+                },
+                {"type": "gap", "question_id": "q4", "number": 12, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        " difficulties in emotional regulation. In other words, people may delay "
+                        "work because they find it hard to manage frustration, self-doubt or fear "
+                        "of failure.\n\n"
+                        "For that reason, experts often recommend breaking large tasks into "
+                        "smaller steps. A piece of work that appears impossible at first can seem "
+                        "far more manageable once it has been divided "
+                    ),
+                },
+                {"type": "gap", "question_id": "q5", "number": 13, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        " simpler stages. It can also help to set very specific goals, rather "
+                        "than telling yourself that you will 'do some work later'.\n\n"
+                        "Another useful strategy is to pay attention to the stories people tell "
+                        "themselves. Someone who says, 'I have to finish this perfectly or not "
+                        "start "
+                    ),
+                },
+                {"type": "gap", "question_id": "q6", "number": 14, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        ",' is more likely to remain stuck than someone willing to make a rough "
+                        "first attempt. Progress, after all, depends not only on motivation but "
+                        "also on the ability to keep going even "
+                    ),
+                },
+                {"type": "gap", "question_id": "q7", "number": 15, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        " the conditions are far from ideal.\n\n"
+                        "In the end, overcoming procrastination is rarely a matter of becoming a "
+                        "completely different person. It is more often about learning how to act "
+                        "despite discomfort rather "
+                    ),
+                },
+                {"type": "gap", "question_id": "q8", "number": 16, "placeholder": "word"},
+                {
+                    "type": "text",
+                    "text": (
+                        " waiting for the perfect moment to appear."
+                    ),
+                },
+            ],
+            "total_gaps": 8,
+        },
+        "answer_key": {
+            "q1": {
+                "correct": "from",
+                "accepted": ["from"],
+                "why_correct": "The fixed expression is 'free themselves from' something.",
+                "why_others_wrong": {},
+            },
+            "q2": {
+                "correct": "in",
+                "accepted": ["in"],
+                "why_correct": "The correct phrase is 'lie in', meaning 'have its cause in'.",
+                "why_others_wrong": {},
+            },
+            "q3": {
+                "correct": "by",
+                "accepted": ["by"],
+                "why_correct": "The correct structure is 'followed by'.",
+                "why_others_wrong": {},
+            },
+            "q4": {
+                "correct": "to",
+                "accepted": ["to"],
+                "why_correct": "The fixed phrase is 'connected to'.",
+                "why_others_wrong": {},
+            },
+            "q5": {
+                "correct": "into",
+                "accepted": ["into"],
+                "why_correct": "We say 'divided into' smaller stages or parts.",
+                "why_others_wrong": {},
+            },
+            "q6": {
+                "correct": "at",
+                "accepted": ["at"],
+                "why_correct": "The expression is 'not start at all'.",
+                "why_others_wrong": {},
+            },
+            "q7": {
+                "correct": "when",
+                "accepted": ["when"],
+                "why_correct": "'Even when' introduces a contrast involving difficult conditions.",
+                "why_others_wrong": {},
+            },
+            "q8": {
+                "correct": "than",
+                "accepted": ["than"],
+                "why_correct": "The structure is 'rather than' + -ing form.",
+                "why_others_wrong": {},
+            },
+        },
+        "generator_version": "mock-p2-v1-segments",
+        "raw_model_output": "",
+        "prompt_log": {
+            "source": "hardcoded_mock",
+            "notes": (
+                "Full 8-gap open cloze mock generator using explicit inline segments "
+                "for the frontend renderer."
+            ),
+        },
+    }

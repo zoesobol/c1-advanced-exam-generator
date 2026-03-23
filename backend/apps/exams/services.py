@@ -6,7 +6,9 @@ from .constants import (
     EXAM_STATUS_COMPLETED,
     EXAM_STATUS_DRAFT,
     EXAM_STATUS_IN_PROGRESS,
+    EXAM_STATUS_READY,
     PART_P1,
+    PART_P2,
     SECTION_STATUS_GENERATING,
     SECTION_STATUS_PENDING,
     SECTION_STATUS_READY,
@@ -14,7 +16,7 @@ from .constants import (
     infer_section_type,
     sort_parts,
 )
-from .mock_generators import generate_mock_p1
+from .mock_generators import generate_mock_p1, generate_mock_p2
 from .models import Exam, ExamSection, SectionAttempt
 
 
@@ -75,7 +77,7 @@ def create_exam_for_user(
 @transaction.atomic
 def generate_section_for_exam(*, exam: Exam, part_code: str) -> ExamSection:
     try:
-        section = exam.sections.get(part_code=part_code) # type: ignore
+        section = exam.sections.get(part_code=part_code)  # type: ignore
     except ExamSection.DoesNotExist as exc:
         raise ValidationError({"part_code": "Section not found for this exam."}) from exc
 
@@ -84,6 +86,8 @@ def generate_section_for_exam(*, exam: Exam, part_code: str) -> ExamSection:
 
     if part_code == PART_P1:
         generated = generate_mock_p1()
+    elif part_code == PART_P2:
+        generated = generate_mock_p2()
     else:
         raise ValidationError({"part_code": f"Generation not implemented for {part_code} yet."})
 
@@ -96,7 +100,7 @@ def generate_section_for_exam(*, exam: Exam, part_code: str) -> ExamSection:
     section.save()
 
     if exam.status == EXAM_STATUS_DRAFT:
-        exam.status = "ready"
+        exam.status = EXAM_STATUS_READY
         exam.save(update_fields=["status", "updated_at"])
 
     return section
@@ -110,7 +114,7 @@ def submit_objective_section(
     answers: dict,
     time_spent_seconds: int,
 ) -> SectionAttempt:
-    if section.exam.user_id != user.id: # type: ignore
+    if section.exam.user_id != user.id:  # type: ignore
         raise ValidationError("You do not have access to this section.")
 
     if not section.answer_key_json:
@@ -123,8 +127,17 @@ def submit_objective_section(
 
     for question_id, metadata in answer_key.items():
         correct_answer = metadata["correct"]
-        user_answer = answers.get(question_id)
-        is_correct = user_answer == correct_answer
+        accepted_answers = metadata.get("accepted", [correct_answer])
+
+        raw_user_answer = answers.get(question_id)
+        user_answer = raw_user_answer if isinstance(raw_user_answer, str) else None
+
+        normalized_user_answer = (user_answer or "").strip().lower()
+        normalized_accepted_answers = [
+            answer.strip().lower() for answer in accepted_answers
+        ]
+
+        is_correct = normalized_user_answer in normalized_accepted_answers
 
         if is_correct:
             score += 1
@@ -134,7 +147,7 @@ def submit_objective_section(
                 "question_id": question_id,
                 "user_answer": user_answer,
                 "correct": is_correct,
-                "correct_answers": [correct_answer],
+                "correct_answers": accepted_answers,
                 "explanation": {
                     "why_correct": metadata.get("why_correct", ""),
                     "why_others_wrong": metadata.get("why_others_wrong", {}),
@@ -157,7 +170,7 @@ def submit_objective_section(
     section.save(update_fields=["status", "updated_at"])
 
     exam = section.exam
-    all_sections_submitted = not exam.sections.exclude(status=SECTION_STATUS_SUBMITTED).exists() # type: ignore
+    all_sections_submitted = not exam.sections.exclude(status=SECTION_STATUS_SUBMITTED).exists()  # type: ignore
     exam.status = EXAM_STATUS_COMPLETED if all_sections_submitted else EXAM_STATUS_IN_PROGRESS
     exam.save(update_fields=["status", "updated_at"])
 

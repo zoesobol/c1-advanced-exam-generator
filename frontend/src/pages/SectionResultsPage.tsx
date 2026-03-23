@@ -1,12 +1,18 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 
 import { ErrorState } from "@/components/shared/ErrorState";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { useAuth } from "@/features/auth/AuthContext";
+import { getSectionResults } from "@/features/exams/api/getSectionResults";
+import { getSection } from "@/features/exams/api/submitSection";
+import { SectionResultsCard } from "@/features/exams/components/SectionResultsCard";
 import type { SubmitSectionResponse } from "@/features/exams/types";
-import { P1ResultsCard } from "@/features/p1/components/P1ResultsCard";
 
 interface ResultsLocationState {
   response?: SubmitSectionResponse;
   sectionTitle?: string;
+  sectionId?: string;
 }
 
 export function SectionResultsPage() {
@@ -15,18 +21,65 @@ export function SectionResultsPage() {
     partCode: string;
   }>();
   const location = useLocation();
+  const { accessToken } = useAuth();
   const state = location.state as ResultsLocationState | null;
 
-  if (!state?.response) {
+  const [response, setResponse] = useState<SubmitSectionResponse | null>(
+    state?.response ?? null,
+  );
+  const [sectionTitle, setSectionTitle] = useState<string | null>(
+    state?.sectionTitle ?? null,
+  );
+  const [isLoading, setIsLoading] = useState(!state?.response);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const run = async () => {
+      if (state?.response) {
+        return;
+      }
+
+      if (!examId || !partCode) {
+        setError("Results unavailable.");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setError(null);
+
+        let sectionId = state?.sectionId ?? null;
+
+        if (!sectionId) {
+          const section = await getSection(examId, partCode, accessToken);
+          sectionId = section.id;
+          setSectionTitle(section.content.title);
+        }
+
+        const results = await getSectionResults(sectionId, accessToken);
+        setResponse(results);
+      } catch {
+        setError("We couldn't load these results.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void run();
+  }, [state, examId, partCode, accessToken]);
+
+  if (isLoading) {
+    return <LoadingSpinner label="Loading results..." />;
+  }
+
+  if (error || !response) {
     return (
       <ErrorState
         title="Results unavailable"
-        message="This page expects submission data from the section flow. For now, please submit the section again from the exam page."
+        message={error ?? "We couldn't find results for this section yet."}
       />
     );
   }
-
-  const { response, sectionTitle } = state;
 
   return (
     <div className="space-y-6">
@@ -57,7 +110,7 @@ export function SectionResultsPage() {
 
       <section className="grid gap-4">
         {response.results.map((result, index) => (
-          <P1ResultsCard
+          <SectionResultsCard
             key={result.question_id}
             index={index}
             result={result}

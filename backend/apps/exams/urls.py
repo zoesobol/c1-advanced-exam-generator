@@ -5,6 +5,7 @@ from .views import (
     ExamListCreateView,
     ExamSectionDetailView,
     ExamSectionGenerateView,
+    SectionLatestResultsView,
     SectionSubmitView,
 )
 
@@ -25,5 +26,10 @@ urlpatterns = [
         "sections/<uuid:section_id>/submit",
         SectionSubmitView.as_view(),
         name="section-submit",
+    ),
+    path(
+        "sections/<uuid:section_id>/results",
+        SectionLatestResultsView.as_view(),
+        name="section-latest-results",
     ),
 ]

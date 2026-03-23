@@ -9,7 +9,7 @@ import { generateSection } from "@/features/exams/api/generateSection";
 import { getExam } from "@/features/exams/api/getExam";
 import { ExamHeader } from "@/features/exams/components/ExamHeader";
 import { ExamSectionTabs } from "@/features/exams/components/ExamSectionTabs";
-import type { Exam } from "@/features/exams/types";
+import type { Exam, PartCode } from "@/features/exams/types";
 
 export function ExamDetailPage() {
   const { examId } = useParams<{ examId: string }>();
@@ -17,7 +17,7 @@ export function ExamDetailPage() {
 
   const [exam, setExam] = useState<Exam | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingPart, setGeneratingPart] = useState<PartCode | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadExam = async () => {
@@ -39,17 +39,17 @@ export function ExamDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examId, accessToken]);
 
-  const handleGenerate = async (partCode: string) => {
+  const handleGenerate = async (partCode: PartCode) => {
     if (!examId) return;
 
     try {
-      setIsGenerating(true);
+      setGeneratingPart(partCode);
       await generateSection(examId, partCode, accessToken);
       await loadExam();
     } catch {
       setError("We couldn't generate this section.");
     } finally {
-      setIsGenerating(false);
+      setGeneratingPart(null);
     }
   };
 
@@ -77,51 +77,55 @@ export function ExamDetailPage() {
       </section>
 
       <section className="grid gap-4">
-        {exam.sections.map((section) => (
-          <div
-            key={section.id}
-            className="rounded-3xl border border-border bg-card p-5"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {section.section_type}
-                </p>
-                <h3 className="mt-1 text-lg font-semibold">
-                  {section.part_code}
-                </h3>
-                <div className="mt-3">
-                  <SectionStatusBadge status={section.status} />
+        {exam.sections.map((section) => {
+          const isGeneratingThisSection = generatingPart === section.part_code;
+
+          return (
+            <div
+              key={section.id}
+              className="rounded-3xl border border-border bg-card p-5"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {section.section_type}
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold">
+                    {section.part_code}
+                  </h3>
+                  <div className="mt-3">
+                    <SectionStatusBadge status={section.status} />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {section.status === "pending" && (
+                    <button
+                      type="button"
+                      onClick={() => void handleGenerate(section.part_code)}
+                      disabled={generatingPart !== null}
+                      className="rounded-2xl bg-foreground px-4 py-2.5 text-sm font-medium text-background transition hover:opacity-90 disabled:opacity-60"
+                    >
+                      {isGeneratingThisSection
+                        ? "Generating..."
+                        : `Generate ${section.part_code}`}
+                    </button>
+                  )}
+
+                  {(section.status === "ready" ||
+                    section.status === "submitted") && (
+                    <Link
+                      to={`/exams/${exam.id}/sections/${section.part_code}`}
+                      className="rounded-2xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
+                    >
+                      Open section
+                    </Link>
+                  )}
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                {section.status === "pending" && (
-                  <button
-                    type="button"
-                    onClick={() => void handleGenerate(section.part_code)}
-                    disabled={isGenerating}
-                    className="rounded-2xl bg-foreground px-4 py-2.5 text-sm font-medium text-background transition hover:opacity-90 disabled:opacity-60"
-                  >
-                    {isGenerating
-                      ? "Generating..."
-                      : `Generate ${section.part_code}`}
-                  </button>
-                )}
-
-                {(section.status === "ready" ||
-                  section.status === "submitted") && (
-                  <Link
-                    to={`/exams/${exam.id}/sections/${section.part_code}`}
-                    className="rounded-2xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition hover:bg-accent"
-                  >
-                    Open section
-                  </Link>
-                )}
-              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </section>
     </div>
   );

@@ -46,8 +46,9 @@ export function DashboardPage() {
         <p className="text-sm text-muted-foreground">Welcome back</p>
         <h1 className="mt-1 text-3xl font-semibold">Hi, {user?.email}</h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Your auth flow is working, the backend P1 mock slice is ready, and now
-          the frontend can drive the full exam experience.
+          Your auth flow is working, P1 is already wired end-to-end, and the app
+          is now structured to support multiple Reading and Use of English
+          parts.
         </p>
 
         <div className="mt-6">
@@ -71,7 +72,7 @@ export function DashboardPage() {
         {exams.length === 0 ? (
           <EmptyState
             title="No exams yet"
-            description="Create your first P1 mock exam to test the full vertical slice."
+            description="Create your first exam with P1, P2, or both."
             action={
               <Link
                 to="/exams/new"
